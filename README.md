@@ -1,4 +1,5 @@
 # FE_POS
+<<<<<<< HEAD
 
 This template should help get you started developing with Vue 3 in Vite.
 
@@ -27,3 +28,6 @@ npm run dev
 ```sh
 npm run build
 ```
+=======
+FE_pos
+>>>>>>> 7a95ca550c618775847654c16d3c37f62a56dc7b
