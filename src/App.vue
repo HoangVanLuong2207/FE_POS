@@ -1,18 +1,18 @@
 <template>
   <div>
-    <router-view></router-view>
+    <Header></Header>
+    <div style="padding-top: 80px;">
+      <router-view></router-view>
+    </div>
   </div>
 </template>
 
 <script setup>
-// Bạn không cần thêm logic gì phức tạp ở đây
-// router-view sẽ tự động xử lý việc hiển thị component tương ứng
+import Header from './components/Header.vue';
+const baseURLimg= import.meta.env.VITE_API_IMG_URL;
 </script>
 
 <style>
-/* Thêm CSS chung cho toàn bộ ứng dụng tại đây
-  Ví dụ: font chữ, màu nền, reset CSS
-*/
 body {
   font-family: Arial, sans-serif;
   background-color: #f4f7f6;
