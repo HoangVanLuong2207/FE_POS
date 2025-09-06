@@ -18,17 +18,32 @@
 
       <nav class="header-nav" :class="{ 'mobile-open': isMobileMenuOpen }">
         <ul class="nav-links">
+          <li>
+          </li>
+          <!-- Admin Dropdown -->
+          <li  v-if="isAdmin"><router-link  class="nav-item"  to="/admin" @click="closeMobileMenu">Thống kê</router-link></li>
+          <li  v-if="isAdmin"><router-link  class="nav-item"  to="/staff" @click="closeMobileMenu">Cửa hàng</router-link></li>
+          <li class="dropdown" v-if="isAdmin" @mouseenter="openDropdown" @mouseleave="closeDropdown">
+            <button class="dropdown-toggle" :class="{ 'active': isDropdownOpen }" @click="toggleDropdown">
+              Quản lý
+              <span class="dropdown-icon">{{ isDropdownOpen ? '▲' : '▼' }}</span>
+            </button>
+            <ul  class="dropdown-menu" :class="{ 'show': isDropdownOpen }">
+              <li><router-link class="nav-item" to="/admin/products" @click="closeMobileMenu">Quản lý sản phẩm</router-link></li>
+              <li><router-link class="nav-item" to="/admin/categories" @click="closeMobileMenu">Quản lý danh mục</router-link></li>
+            </ul>
+          </li>
+          <!-- Staff Links -->
+          <li v-if="isStaff">
+            <router-link class="nav-item" to="/staff/sales" @click="closeMobileMenu">Bán hàng</router-link>
+          </li>
+          <li v-if="isStaff">
+            <router-link class="nav-item" to="/staff/orders" @click="closeMobileMenu">Đơn hàng</router-link>
+          </li>
           <li v-if="isLoggedIn">
-            <a href="#" class="nav-item" @click.prevent="goToDashboard">Dashboard</a>
+            <button class="logout-btn" @click="handleLogout">Đăng xuất</button>
           </li>
         </ul>
-        <button
-          v-if="isLoggedIn"
-          class="logout-btn"
-          @click="handleLogout"
-        >
-          Đăng xuất
-        </button>
       </nav>
     </div>
   </header>
@@ -38,14 +53,19 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '@/services/api';
-const baseURLimg= import.meta.env.VITE_API_IMG_URL;
+const baseURLimg = import.meta.env.VITE_API_IMG_URL;
 const router = useRouter();
 const isLoggedIn = ref(false);
 const isMobileMenuOpen = ref(false);
+const isAdmin = ref(false);
+const isStaff = ref(false);
+const isDropdownOpen = ref(false);
 
 const checkLoginStatus = () => {
   const token = sessionStorage.getItem('token');
   isLoggedIn.value = !!token;
+  isAdmin.value = sessionStorage.getItem('role') === 'admin';
+  isStaff.value = sessionStorage.getItem('role') === 'staff';
 };
 
 const goToDashboard = () => {
@@ -57,15 +77,39 @@ const goToDashboard = () => {
 
 const toggleMobileMenu = () => {
   isMobileMenuOpen.value = !isMobileMenuOpen.value;
+  if (!isMobileMenuOpen.value) isDropdownOpen.value = false;
+};
+
+const toggleDropdown = () => {
+  // On mobile, clicking should toggle. On desktop, hover handlers control it.
+  if (window.innerWidth <= 768) {
+    isDropdownOpen.value = !isDropdownOpen.value;
+  }
 };
 
 const closeMobileMenu = () => {
   isMobileMenuOpen.value = false;
+  isDropdownOpen.value = false;
+};
+
+const openDropdown = () => {
+  // Only trigger hover open on desktop
+  if (window.innerWidth > 768) {
+    isDropdownOpen.value = true;
+  }
+};
+
+const closeDropdown = () => {
+  // Only trigger hover close on desktop
+  if (window.innerWidth > 768) {
+    isDropdownOpen.value = false;
+  }
 };
 
 const handleResize = () => {
   if (window.innerWidth > 768) {
     isMobileMenuOpen.value = false;
+    isDropdownOpen.value = false;
   }
 };
 
@@ -77,6 +121,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize);
+  window.removeEventListener('storage', checkLoginStatus);
 });
 
 const handleLogout = async () => {
@@ -170,7 +215,8 @@ const handleLogout = async () => {
   margin: 0;
   padding: 0;
   display: flex;
-  gap: 20px;
+  align-items: center;
+  gap: 10px;
 }
 
 .nav-item {
@@ -204,6 +250,80 @@ const handleLogout = async () => {
   box-shadow: 0 4px 8px rgba(231, 76, 60, 0.3);
 }
 
+/* Dropdown Styles */
+.dropdown {
+  position: relative;
+}
+
+.dropdown-toggle {
+  background: none;
+  border: none;
+  color: #555;
+  font-weight: 500;
+  padding: 8px 16px;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.dropdown-toggle:hover {
+  color: #3498db;
+  background-color: #f8f9fa;
+}
+
+.dropdown-icon {
+  font-size: 0.8rem;
+  transition: transform 0.3s ease;
+}
+
+.dropdown-toggle.active .dropdown-icon {
+  transform: rotate(180deg);
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+  list-style: none;
+  padding: 10px 0;
+  margin: 5px 0 0 0;
+  min-width: 200px;
+  max-width: 250px; /* Prevent overflow */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
+  z-index: 1000;
+}
+
+.dropdown-menu.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.dropdown-menu .nav-item {
+  display: block;
+  padding: 10px 20px;
+  width: 100%;
+  box-sizing: border-box; /* Ensure padding doesn't cause overflow */
+  border-radius: 0;
+  white-space: nowrap; /* Prevent text wrapping */
+  overflow: hidden; /* Hide any overflow */
+  text-overflow: ellipsis; /* Add ellipsis for long text */
+}
+
+.dropdown-menu .nav-item:hover {
+  background-color: #f0f8ff;
+}
+
 /* Mobile styles */
 @media (max-width: 768px) {
   .header-container {
@@ -227,11 +347,10 @@ const handleLogout = async () => {
     padding: 80px 20px 20px;
     box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
     transition: right 0.3s ease;
-    gap: 0;
   }
 
   .header-nav.mobile-open {
-    right: 0;
+    right: -20px;
   }
 
   .nav-links {
@@ -248,9 +367,50 @@ const handleLogout = async () => {
   }
 
   .logout-btn {
-    width: 100%;
+    width: 80%;
     padding: 15px;
     font-size: 1rem;
+  }
+
+  /* Mobile Dropdown */
+  .dropdown {
+    width: 100%;
+  }
+
+  .dropdown-toggle {
+    width: 100%;
+    text-align: left;
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+  }
+
+  .dropdown-menu {
+    position: static;
+    box-shadow: none;
+    background-color: #f8f9fa;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+
+  .dropdown-menu.show {
+    max-height: 300px;
+  }
+
+  .dropdown-menu .nav-item {
+    padding: 15px 20px;
+    border-bottom: 1px solid #ddd;
+    width: 100%;
+    box-sizing: border-box;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 
@@ -267,5 +427,15 @@ const handleLogout = async () => {
     width: 100%;
     right: -110%;
   }
+ .logout-btn{
+  width: 100%;
+ }
+}
+
+.nav-item.router-link-active,
+.nav-item.router-link-exact-active {
+  color: #3498db;
+  background-color: #f0f8ff;
+  font-weight: 600;
 }
 </style>
