@@ -4,6 +4,7 @@ import App from './App.vue';
 import router from './router'; // Import router đã tạo
 import Toast, { POSITION } from 'vue-toastification';
 import 'vue-toastification/dist/index.css';
+import './tailwind.css';
 
 const app = createApp(App);
 

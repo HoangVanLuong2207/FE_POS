@@ -9,7 +9,7 @@
 
 <script setup>
 import Header from './components/Header.vue';
-const baseURLimg= import.meta.env.VITE_API_IMG_URL;
+
 </script>
 
 <style>

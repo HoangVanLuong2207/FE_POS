@@ -31,7 +31,9 @@
           </thead>
           <tbody>
             <tr v-if="loading && items.length === 0">
-              <td colspan="5" class="text-center">Đang tải...</td>
+              <td colspan="9" class="text-center py-4">
+                <img src="/loading.svg" alt="Đang tải..." class="w-4 h-4 mx-auto animate-spin" />
+              </td>
             </tr>
             <tr v-else-if="!loading && items.length === 0">
               <td colspan="5" class="text-center">Không có dữ liệu</td>
