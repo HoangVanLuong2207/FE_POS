@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: fe-pos       # tên service của bạn trên Render
+    env: node
+    plan: free         # hoặc starter/pro tuỳ bạn
+    buildCommand: npm install && npm run build
+    startCommand: npx serve -s dist
+    envVars:
+      - key: NODE_ENV
+        value: production
