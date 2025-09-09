@@ -21,14 +21,18 @@
           <li>
           </li>
           <!-- Admin Dropdown -->
-          <li  v-if="isAdmin"><router-link  class="nav-item"  to="/admin" @click="closeMobileMenu">Thống kê</router-link></li>
-          <li  v-if="isAdmin"><router-link  class="nav-item"  to="/staff" @click="closeMobileMenu">Cửa hàng</router-link></li>
+          <li v-if="isAdmin"><router-link class="nav-item" to="/admin" @click="closeMobileMenu">Thống kê</router-link></li>
+          <li v-if="isAdmin"><router-link class="nav-item" to="/staff" @click="closeMobileMenu">Cửa hàng</router-link></li>
           <li class="dropdown" v-if="isAdmin" @mouseenter="openDropdown" @mouseleave="closeDropdown">
-            <button class="dropdown-toggle" :class="{ 'active': isDropdownOpen }" @click="toggleDropdown">
+            <button 
+              class="dropdown-toggle" 
+              :class="{ 'active': isDropdownOpen || isManagementActive }" 
+              @click="toggleDropdown"
+            >
               Quản lý
               <span class="dropdown-icon">{{ isDropdownOpen ? '▲' : '▼' }}</span>
             </button>
-            <ul  class="dropdown-menu" :class="{ 'show': isDropdownOpen }">
+            <ul class="dropdown-menu" :class="{ 'show': isDropdownOpen }">
               <li><router-link class="nav-item" to="/admin/products" @click="closeMobileMenu">Quản lý sản phẩm</router-link></li>
               <li><router-link class="nav-item" to="/admin/categories" @click="closeMobileMenu">Quản lý danh mục</router-link></li>
             </ul>
@@ -50,11 +54,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import api from '@/services/api';
+
 const baseURLimg = import.meta.env.VITE_API_IMG_URL;
 const router = useRouter();
+const route = useRoute();
 const isLoggedIn = ref(false);
 const isMobileMenuOpen = ref(false);
 const isAdmin = ref(false);
@@ -67,6 +73,10 @@ const checkLoginStatus = () => {
   isAdmin.value = sessionStorage.getItem('role') === 'admin';
   isStaff.value = sessionStorage.getItem('role') === 'staff';
 };
+
+const isManagementActive = computed(() => {
+  return route.path.startsWith('/admin/products') || route.path.startsWith('/admin/categories');
+});
 
 const goToDashboard = () => {
   const role = sessionStorage.getItem('role');
@@ -81,7 +91,6 @@ const toggleMobileMenu = () => {
 };
 
 const toggleDropdown = () => {
-  // On mobile, clicking should toggle. On desktop, hover handlers control it.
   if (window.innerWidth <= 768) {
     isDropdownOpen.value = !isDropdownOpen.value;
   }
@@ -93,14 +102,12 @@ const closeMobileMenu = () => {
 };
 
 const openDropdown = () => {
-  // Only trigger hover open on desktop
   if (window.innerWidth > 768) {
     isDropdownOpen.value = true;
   }
 };
 
 const closeDropdown = () => {
-  // Only trigger hover close on desktop
   if (window.innerWidth > 768) {
     isDropdownOpen.value = false;
   }
@@ -275,6 +282,12 @@ const handleLogout = async () => {
   background-color: #f8f9fa;
 }
 
+.dropdown-toggle.active {
+  color: #3498db;
+  background-color: #f0f8ff;
+  font-weight: 600;
+}
+
 .dropdown-icon {
   font-size: 0.8rem;
   transition: transform 0.3s ease;
@@ -295,7 +308,7 @@ const handleLogout = async () => {
   padding: 10px 0;
   margin: 5px 0 0 0;
   min-width: 200px;
-  max-width: 250px; /* Prevent overflow */
+  max-width: 250px;
   opacity: 0;
   visibility: hidden;
   transform: translateY(-10px);
@@ -313,11 +326,11 @@ const handleLogout = async () => {
   display: block;
   padding: 10px 20px;
   width: 100%;
-  box-sizing: border-box; /* Ensure padding doesn't cause overflow */
+  box-sizing: border-box;
   border-radius: 0;
-  white-space: nowrap; /* Prevent text wrapping */
-  overflow: hidden; /* Hide any overflow */
-  text-overflow: ellipsis; /* Add ellipsis for long text */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .dropdown-menu .nav-item:hover {
@@ -427,8 +440,8 @@ const handleLogout = async () => {
     width: 100%;
     right: -110%;
   }
- .logout-btn{
-  width: 100%;
+ .logout-btn {
+    width: 100%;
  }
 }
 

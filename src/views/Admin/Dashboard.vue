@@ -1,7 +1,5 @@
 <template>
   <div class="dashboard-container">
-   
-
     <div class="dashboard-grid">
       <!-- Bộ lọc tháng/năm -->
       <div class="filters-row">
@@ -17,29 +15,26 @@
             <option v-for="m in monthOptions" :key="m.value" :value="m.value">{{ m.label }}</option>
           </select>
         </div>
-        <button class="refresh-btn" @click="applyFilter">Xem thống kê</button>
+        <button class="refresh-btn" @click="applyFilter" :disabled="loading">
+          <span>Xem thống kê</span>
+        </button>
       </div>
+
       <!-- Thống kê -->
       <div class="stats-section">
-        <div class="stat-card">
+        <div class="stat-card" v-for="(item, key) in statItems" :key="key">
           <div class="stat-icon"></div>
           <div class="stat-content">
-            <h3>Tổng nhập</h3>
-            <p class="stat-value">₫{{ formatNumber(dashboard.subtotal) }}</p>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon"></div>
-          <div class="stat-content">
-            <h3>Tổng bán</h3>
-            <p class="stat-value">₫{{ formatNumber(dashboard.total) }}</p>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon"></div>
-          <div class="stat-content">
-            <h3>Lợi nhuận tổng</h3>
-            <p class="stat-value">₫{{ formatNumber(dashboard.profit) }}</p>
+            <h3>{{ item.label }}</h3>
+            <p class="stat-value">
+              <!-- Skeleton khi loading -->
+              <template v-if="loading">
+                <div class="skeleton h-6 w-24"></div>
+              </template>
+              <template v-else>
+                ₫{{ formatNumber(dashboard[item.field]) }}
+              </template>
+            </p>
           </div>
         </div>
       </div>
@@ -70,6 +65,7 @@ const toast = useToast()
 
 // State lưu dữ liệu từ backend
 const dashboard = ref({ subtotal: 0, total: 0, profit: 0 })
+const loading = ref(false)
 
 // Options tháng/năm
 const now = new Date()
@@ -91,26 +87,38 @@ const monthOptions = ref([
   { value: 12, label: 'Tháng 12' },
 ])
 
+// Danh sách stat hiển thị
+const statItems = [
+  { field: 'subtotal', label: 'Tổng nhập' },
+  { field: 'total', label: 'Tổng bán' },
+  { field: 'profit', label: 'Lợi nhuận tổng' },
+]
+
 // Gọi API backend
 const refresh = async () => {
+  loading.value = true
   try {
     const res = await api.get('/admin/dashboard')
     dashboard.value = res.data.data
   } catch (error) {
     toast.error('Không thể tải dashboard')
+  } finally {
+    loading.value = false
   }
 }
 
 // Lọc theo tháng/năm
 const applyFilter = async () => {
+  loading.value = true
   try {
     const res = await api.get('/admin/dashboard/monthly', {
       params: { year: selectedYear.value, month: selectedMonth.value }
     })
-    // Expect: { subtotal, total, profit } cho tháng/năm
     dashboard.value = res.data?.data || res.data
   } catch (error) {
     toast.error('Không thể tải thống kê theo tháng')
+  } finally {
+    loading.value = false
   }
 }
 
@@ -126,8 +134,6 @@ const formatNumber = (num) => {
 
 <style scoped>
 .dashboard-container { max-width: 1200px; margin: 0 auto; padding: 20px; }
-.dashboard-header { text-align: center; margin-bottom: 30px; }
-.dashboard-header h1 { margin: 0 0 8px; }
 .dashboard-grid { display: grid; gap: 24px; }
 .filters-row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
 .filter-item { display: grid; gap: 6px; }
@@ -143,5 +149,18 @@ const formatNumber = (num) => {
 .action-buttons { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
 .action-btn { padding: 12px 16px; border-radius: 10px; border: 2px solid #e9ecef; background: #f8f9fa; cursor: pointer; text-align: center; font-weight: 500; text-decoration: none; color: #333; transition: 0.2s; }
 .action-btn:hover { background: #e9ecef; }
+
+/* Skeleton loading */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e4e4e4 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  border-radius: 6px;
+  animation: skeleton-loading 1.5s infinite;
+}
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 @media (max-width: 768px){ .dashboard-container{ padding: 15px; } }
 </style>
