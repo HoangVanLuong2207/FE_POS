@@ -51,7 +51,7 @@
                 >
                   <div class="aspect-square mb-3 bg-gray-100 rounded-lg overflow-hidden">
                     <img 
-                      :src="baseURLimg + product.image_url" 
+                      :src="product.image_url" 
                       :alt="product.name"
                       class="w-full h-full object-cover"
                     />
@@ -98,7 +98,7 @@
                   class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg"
                 >
                   <img 
-                    :src="baseURLimg + item.image_url" 
+                    :src="item.image_url" 
                     :alt="item.name"
                     class="w-12 h-12 object-cover rounded"
                   />
