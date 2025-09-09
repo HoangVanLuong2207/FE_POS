@@ -52,7 +52,7 @@
   <td data-label="Giá bán ra">{{ Number(pro.payprice) }}</td>
 
   <td data-label="Ảnh">
-    <img :src="baseURLimg + pro.image_url"
+    <img :src="pro.image_url"
          alt=""
          style="width:150px; height:150px; object-fit:cover; border-radius:8px; border:1px solid #ddd;" />
   </td>
@@ -132,7 +132,7 @@
               <label>Ảnh sản phẩm <span class="req">*</span></label>
               <div class="flex items-center gap-4">
                 <input id="image" type="file" accept="image/*" @change="handleFileUpload" />
-                <img v-if="imagePreview || form.image_url" :src="imagePreview || (baseURLimg + form.image_url)" alt="preview" style="width:160px; height:160px; object-fit:cover; border-radius:8px; border:1px solid #e1e5ea;" />
+                <img v-if="imagePreview || form.image_url" :src="imagePreview || ( form.image_url)" alt="preview" style="width:160px; height:160px; object-fit:cover; border-radius:8px; border:1px solid #e1e5ea;" />
               </div>
             </div>
             <div class="form-field inline">
