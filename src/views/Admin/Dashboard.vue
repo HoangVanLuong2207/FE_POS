@@ -49,7 +49,9 @@
           <router-link to="/admin/products" class="action-btn">
             Quản lý sản phẩm
           </router-link>
-          <button class="action-btn">Báo cáo</button>
+          <router-link to="/admin/orders" class="action-btn">
+            Hóa đơn hàng hóa
+          </router-link>        
         </div>
       </div>
     </div>
