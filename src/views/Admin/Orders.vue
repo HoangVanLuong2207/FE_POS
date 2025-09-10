@@ -39,12 +39,12 @@
           <table class="table">
             <thead>
               <tr v-if="activeTab === 'sales'">
-                <th style="width: 30px;">ID</th>
+              
                 <th>Mã hóa đơn</th>
                 <th>Khách hàng</th>
                 <th>Tổng tiền</th>
                 <th>Ngày tạo</th>
-                <th>Ghi chú</th>
+                
                 <th style="width: 210px;">Thao tác</th>
               </tr>
               <tr v-else>
@@ -53,29 +53,28 @@
                 <th>Nhà cung cấp</th>
                 <th>Tổng tiền</th>
                 <th>Ngày nhập</th>
-                <th>Ghi chú</th>
+              
                 <th style="width: 210px;">Thao tác</th>
               </tr>
             </thead>
             <tbody>
               <tr v-if="loading && items.length === 0">
-                <td :colspan="activeTab === 'sales' ? 8 : 8" class="text-center py-4">
+                <td :colspan="6" class="text-center py-4">
                   <img src="/loading.svg" alt="Đang tải..." class="w-4 h-4 mx-auto animate-spin" />
                 </td>
               </tr>
   
               <tr v-else-if="!loading && items.length === 0">
-                <td :colspan="activeTab === 'sales' ? 8 : 8" class="text-center">Không có dữ liệu</td>
+                <td :colspan="6" class="text-center">Không có dữ liệu</td>
               </tr>
               
               <!-- Hóa đơn bán hàng -->
-              <tr v-for="order in items" :key="order.id" v-if="activeTab === 'sales'">
-                <td data-label="ID">#{{ order.id }}</td>
-                <td data-label="Mã hóa đơn">{{ order.invoice_code || order.order_number || ('HD' + order.id) }}</td>
-                <td data-label="Khách hàng">{{ order.customer_name || 'Khách lẻ' }}</td>
+              <tr v-for="order in (activeTab === 'sales' ? salesItems : [])" :key="order.id" v-if="activeTab === 'sales'">
+           
+                <td data-label="Mã hóa đơn">{{ order.id || order.order_number || '—' }}</td>
+                <td data-label="Khách hàng">{{ order.customer_name || '—' }}</td>
                 <td data-label="Tổng tiền">{{ formatCurrency(order.total_amount) }}</td>
                 <td data-label="Ngày tạo">{{ formatDate(order.created_at) }}</td>
-                <td data-label="Ghi chú" class="muted">{{ order.notes || '—' }}</td>
                 <td data-label="Thao tác" class="row-actions">
                   <button class="btn btn-small" @click="viewOrder(order)">Xem</button>
                   <button class="btn btn-small btn-danger" @click="confirmRemove(order)">Xóa</button>
@@ -83,13 +82,12 @@
               </tr>
 
               <!-- Hóa đơn nhập hàng -->
-              <tr v-for="order in items" :key="order.id || order.purchase_number" v-if="activeTab === 'purchase'">
-                <td data-label="ID">#{{ order.id || order.purchase_number }}</td>
-                <td data-label="Mã hóa đơn">{{ order.purchase_number || order.invoice_code || ('PN' + (order.id || '')) }}</td>
-                <td data-label="Nhà cung cấp">{{ order.supplier_name || 'Chưa xác định' }}</td>
+              <tr v-for="order in (activeTab === 'purchase' ? purchaseItems : [])" :key="order.id" v-if="activeTab === 'purchase'">
+                <td data-label="ID">#{{ order.id }}</td>
+                <td data-label="Mã hóa đơn">{{ order.purchase_number || order.invoice_code || '—' }}</td>
+                <td data-label="Nhà cung cấp">{{ order.supplier_name || '—' }}</td>
                 <td data-label="Tổng tiền">{{ formatCurrency(order.total_amount) }}</td>
                 <td data-label="Ngày tạo">{{ formatDate(order.purchase_date || order.created_at) }}</td>
-                <td data-label="Ghi chú" class="muted">{{ order.notes || '—' }}</td>
     <td data-label="Thao tác" class="row-actions">
                   <button class="btn btn-small" @click="viewOrder(order)">Xem</button>
                   <button class="btn btn-small btn-danger" @click="confirmRemove(order)">Xóa</button>
@@ -209,6 +207,8 @@
   
   // Danh sách + phân trang
   const items = ref([]);
+  const salesItems = ref([]);
+  const purchaseItems = ref([]);
   const total = ref(0);
   const loading = ref(false);
   const query = reactive({ keyword: '', page: 1, limit: 10 });
@@ -217,8 +217,8 @@
   // Tab switching
   const switchTab = (tab) => {
     activeTab.value = tab;
-    query.page = 1;
-    refresh();
+    // Do not refetch; reuse cached lists
+    items.value = activeTab.value === 'sales' ? salesItems.value : purchaseItems.value;
   };
   
   const search = () => {
@@ -251,32 +251,43 @@
   const refresh = async () => {
     loading.value = true;
     try {
-      const params = { 
-        keyword: query.keyword || undefined, 
-        page: query.page, 
-        limit: query.limit,
-        type: activeTab.value
-      };
-      const endpoint = activeTab.value === 'sales' ? '/admin/orders/sales' : '/admin/orders/purchase';
-      const { data } = await api.get(endpoint, { params });
-      const payload = data?.data ?? data;
-      const list = extractItems(payload);
-      items.value = Array.isArray(list) ? list : [];
-      total.value = extractTotal(payload, items.value);
+      const commonParams = { keyword: query.keyword || undefined, page: query.page, limit: query.limit };
+      const [salesRes, purchaseRes] = await Promise.all([
+        api.get('/admin/orders/sales', { params: commonParams }),
+        api.get('/admin/orders/purchase', { params: commonParams })
+      ]);
+      const salesPayload = salesRes?.data?.data ?? salesRes?.data;
+      const purchasePayload = purchaseRes?.data?.data ?? purchaseRes?.data;
+      const sList = extractItems(salesPayload);
+      const pList = extractItems(purchasePayload);
+      salesItems.value = Array.isArray(sList) ? sList : [];
+      purchaseItems.value = Array.isArray(pList) ? pList : [];
+      // For footer pagination, prefer sales total (or any) since both share UI controls
+      total.value = extractTotal(salesPayload, salesItems.value);
+      items.value = activeTab.value === 'sales' ? salesItems.value : purchaseItems.value;
       // Prefetch top N details in background to speed up first open
-      const prefetchIds = items.value.slice(0, 5).map(o => o.id || o.purchase_number || o.order_number).filter(Boolean);
-      const tabKey = activeTab.value;
-      const cacheMap = tabKey === 'sales' ? detailCache.sales : detailCache.purchase;
-      prefetchIds.forEach(async (pid) => {
+      const prefetchSales = salesItems.value.slice(0, 5).map(o => o.id).filter(Boolean);
+      const prefetchPurchase = purchaseItems.value.slice(0, 5).map(o => o.id).filter(Boolean);
+      prefetchSales.forEach(async (pid) => {
         const key = String(pid);
-        if (cacheMap.has(key)) return;
+        if (detailCache.sales.has(key)) return;
         try {
-          const detailEndpoint = tabKey === 'sales' ? `/admin/orders/sales/${pid}` : `/admin/orders/purchase/${pid}`;
-          const res = await api.get(detailEndpoint);
+          const res = await api.get(`/admin/orders/sales/${pid}`);
           const pl = res?.data?.data ?? res?.data;
-          const record = pl?.order || pl?.purchase_order || pl;
-          const items = record?.items || record?.order_items || record?.purchase_order_items || pl?.items || [];
-          cacheMap.set(key, { record, items });
+          const record = pl?.order || pl;
+          const items = record?.items || record?.order_items || pl?.items || [];
+          detailCache.sales.set(key, { record, items });
+        } catch (_) {}
+      });
+      prefetchPurchase.forEach(async (pid) => {
+        const key = String(pid);
+        if (detailCache.purchase.has(key)) return;
+        try {
+          const res = await api.get(`/admin/orders/purchase/${pid}`);
+          const pl = res?.data?.data ?? res?.data;
+          const record = pl?.purchase_order || pl;
+          const items = record?.items || record?.purchase_order_items || pl?.items || [];
+          detailCache.purchase.set(key, { record, items });
         } catch (_) {}
       });
     } catch (e) {
