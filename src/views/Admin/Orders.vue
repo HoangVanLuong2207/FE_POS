@@ -537,10 +537,13 @@
   .modal {
     width: 100%;
     max-width: 560px;
+    max-height: 90vh;
     background: #fff;
     border-radius: 12px;
     box-shadow: 0 12px 40px rgba(0, 0, 0, .2);
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
 
   .grid-two {
@@ -550,8 +553,8 @@
   }
   
   .modal-header { padding: 16px 16px 0; }
-  .modal-body { padding: 16px; display: grid; gap: 12px; }
-  .modal-footer { padding: 16px; display: flex; justify-content: flex-end; gap: 10px; }
+  .modal-body { padding: 16px; display: grid; gap: 12px; overflow: auto; }
+  .modal-footer { padding: 16px; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid #eef1f5; background: #fff; }
   .form-field { display: grid; gap: 6px; }
   .form-field.inline { align-items: center; }
   .form-field label { font-weight: 600; color: #2c3e50; }
