@@ -113,7 +113,7 @@
                     >
                       -
                     </button>
-                    <span class="w-8 text-center text-sm font-medium">{{ item.quantity }}</span>
+                    <input type="number" min="1" v-model="item.quantity" class="w-8 text-center text-sm font-medium" />
                     <button 
                       @click="increaseQuantity(item.id)"
                       class="w-6 h-6 bg-gray-200 hover:bg-gray-300 rounded-full flex items-center justify-center text-sm"
@@ -200,7 +200,7 @@
             </div>
             <div class="flex items-center gap-2">
               <button @click="decreaseQuantity(item.id)" class="w-6 h-6 bg-gray-200 rounded-full">-</button>
-              <span class="w-8 text-center">{{ item.quantity }}</span>
+              <input type="number" v-model="item.quantity" class="w-8 text-center" />
               <button @click="increaseQuantity(item.id)" class="w-6 h-6 bg-gray-200 rounded-full">+</button>
             </div>
             <button @click="removeFromCart(item.id)" class="text-red-500 text-sm">×</button>

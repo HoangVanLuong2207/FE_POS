@@ -73,7 +73,7 @@ const loading = ref(false)
 const now = new Date()
 const selectedYear = ref(now.getFullYear())
 const selectedMonth = ref(now.getMonth() + 1)
-const yearOptions = ref([now.getFullYear() - 1, now.getFullYear(), now.getFullYear() + 1])
+const yearOptions = ref([now.getFullYear() - 5,  now.getFullYear() - 4, now.getFullYear() - 3, now.getFullYear() - 2, now.getFullYear() - 1, now.getFullYear()])
 const monthOptions = ref([
   { value: 1, label: 'Tháng 1' },
   { value: 2, label: 'Tháng 2' },
