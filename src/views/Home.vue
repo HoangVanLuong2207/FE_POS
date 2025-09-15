@@ -24,11 +24,11 @@
             </div>
             <div class="pos-content">
               <div class="pos-item">
-                <span>Cà phê sữa</span>
+                <span>Nhôm A</span>
                 <span>₫25,000</span>
               </div>
               <div class="pos-item">
-                <span>Bánh mì</span>
+                <span>Nhôm B</span>
                 <span>₫15,000</span>
               </div>
               <div class="pos-total">
